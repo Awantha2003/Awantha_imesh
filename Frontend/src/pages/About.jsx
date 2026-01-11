@@ -1,17 +1,30 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Mail, Calendar, MapPin, Building2, GraduationCap, Download } from 'lucide-react';
 import { FeaturedSection } from '../components/FeaturedSection';
 import { ContactSection } from '../components/ContactSection';
 import { motion } from 'framer-motion';
 export function About() {
+  const [bgIndex, setBgIndex] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setBgIndex((prev) => (prev + 1) % 2);
+    }, 6000);
+    return () => clearInterval(timer);
+  }, []);
+
   return (
     <div className="max-w-4xl mx-auto">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-[var(--card-bg)] rounded-3xl p-8 border border-[var(--card-border)] mb-8 relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-r from-blue-900/40 to-purple-900/40"></div>
+        <div className="absolute inset-0">
+          <div className={`absolute inset-0 bg-[url('/Back1.png')] bg-cover bg-center transition-opacity duration-1000 ${bgIndex === 0 ? 'opacity-25' : 'opacity-0'}`}></div>
+          <div className={`absolute inset-0 bg-[url('/Back2.png')] bg-cover bg-center transition-opacity duration-1000 ${bgIndex === 1 ? 'opacity-25' : 'opacity-0'}`}></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/30 to-transparent"></div>
+        </div>
 
         <div className="relative z-10 flex flex-col md:flex-row gap-8 items-start pt-12">
           <div className="w-32 h-32 rounded-full border-4 border-[var(--card-bg)] overflow-hidden shadow-xl">
-            <img src="/image.png" alt="Profile" className="w-full h-full object-cover" />
+            <img src="/J5l8XaQ8ZbFIvEWZ.png" alt="Profile" className="w-full h-full object-cover" />
           </div>
 
           <div className="flex-1">

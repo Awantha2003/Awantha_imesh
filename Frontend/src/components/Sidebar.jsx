@@ -24,7 +24,7 @@ export function Sidebar() {
         <header className="sticky top-0 z-30 flex items-center justify-between border-b border-[var(--panel-border)] bg-[var(--panel-strong)]/90 px-4 py-3 backdrop-blur">
           <div className="flex items-center gap-3">
             <div className="h-9 w-9 overflow-hidden rounded-xl bg-[var(--button-bg)] ring-1 ring-[var(--panel-border)]">
-              <img src="/image.png" alt="Profile" className="h-full w-full object-cover" />
+              <img src="/J5l8XaQ8ZbFIvEWZ.png" alt="Profile" className="h-full w-full object-cover" />
             </div>
             <div>
               <div className="text-sm font-semibold text-[var(--app-text-strong)]">Awantha imesh</div>
@@ -138,7 +138,7 @@ export function Sidebar() {
           <div className="flex flex-col items-start">
             <div className="h-28 w-28 overflow-hidden rounded-full bg-[var(--button-bg)] ring-2 ring-[var(--panel-border)]">
               <img
-                src="/image.png"
+                src="/J5l8XaQ8ZbFIvEWZ.png"
                 alt="Profile"
                 className="h-full w-full object-cover"
               />

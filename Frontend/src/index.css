@@ -45,3 +45,38 @@
   --card-hover: #e5e7eb;
   --chip-bg: #eef2f7;
 }
+
+@keyframes skill-marquee-left {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes skill-marquee-right {
+  0% {
+    transform: translateX(-50%);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+.skill-marquee {
+  display: flex;
+  width: max-content;
+  animation: skill-marquee-left 22s linear infinite;
+  will-change: transform;
+}
+
+.skill-marquee.reverse {
+  animation-name: skill-marquee-right;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skill-marquee {
+    animation: none;
+  }
+}
