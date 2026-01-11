@@ -57,8 +57,9 @@ export function AdminDashboard() {
   }, []);
 
   const handleChange = (field) => (event) => {
-    const value = field === 'isPublic' ? event.target.checked : event.target.value;
-    setForm((prev) => ({ ...prev, [field]: value }));
+    const { type, checked, value } = event.target;
+    const nextValue = type === 'checkbox' ? checked : value;
+    setForm((prev) => ({ ...prev, [field]: nextValue }));
   };
   const handleImageChange = (event) => {
     const file = event.target.files?.[0] || null;
@@ -216,17 +217,16 @@ export function AdminDashboard() {
             />
           </div>
 
-          <div className="flex items-center gap-3 md:pt-6">
-            <input
-              id="isPublic"
-              type="checkbox"
-              checked={form.isPublic}
-              onChange={handleChange('isPublic')}
-              className="h-4 w-4 rounded border border-[var(--card-border)]"
-            />
-            <label htmlFor="isPublic" className="text-sm text-[var(--app-text-strong)]">
-              Public project
-            </label>
+          <div>
+            <label className="text-xs uppercase tracking-wide text-[var(--app-text-subtle)]">Visibility</label>
+            <select
+              value={form.isPublic ? 'public' : 'private'}
+              onChange={(event) => setForm((prev) => ({ ...prev, isPublic: event.target.value === 'public' }))}
+              className="mt-2 w-full rounded-xl border border-[var(--card-border)] bg-[var(--card-muted)] px-4 py-2 text-sm text-[var(--app-text-strong)] focus:outline-none focus:border-blue-500"
+            >
+              <option value="public">Public</option>
+              <option value="private">Private</option>
+            </select>
           </div>
 
           <div>

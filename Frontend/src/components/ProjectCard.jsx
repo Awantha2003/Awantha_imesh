@@ -2,23 +2,7 @@ import React from 'react';
 import { Calendar, Lock, Globe } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { API_BASE_URL } from '../lib/api';
-
-const COUNTRY_FLAGS = {
-  'Sri Lanka': '🇱🇰',
-  India: '🇮🇳',
-  'United States': '🇺🇸',
-  'United Kingdom': '🇬🇧',
-  Australia: '🇦🇺',
-  Canada: '🇨🇦',
-  Germany: '🇩🇪',
-  Singapore: '🇸🇬',
-  'United Arab Emirates': '🇦🇪',
-  Other: '🏳️'
-};
-
-function getCountryFlag(country) {
-  return COUNTRY_FLAGS[country] || '';
-}
+import { getCountryFlagUrl } from '../lib/countries';
 
 export function ProjectCard({
   title,
@@ -34,7 +18,7 @@ export function ProjectCard({
   const cardImage = imageUrl
     ? (imageUrl.startsWith('/uploads') ? `${API_BASE_URL}${imageUrl}` : imageUrl)
     : null;
-  const flag = country ? getCountryFlag(country) : '';
+  const flagUrl = country ? getCountryFlagUrl(country) : '';
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
@@ -67,19 +51,29 @@ export function ProjectCard({
         <div className="p-2 bg-[var(--chip-bg)] rounded-lg text-blue-400 group-hover:text-blue-300 transition-colors">
           {isPublic ? <Globe size={20} /> : <Lock size={20} />}
         </div>
-        <span className={`text-xs px-2 py-1 rounded-full border ${isPublic ? 'border-green-500/30 text-green-400 bg-green-500/10' : 'border-[var(--card-border)] text-[var(--app-text-muted)] bg-[var(--card-muted)]'}`}>
-          {isPublic ? 'Public' : 'Private'}
-        </span>
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          {category && (
+            <span className="text-xs px-2 py-1 rounded-full border border-[var(--card-border)] text-[var(--app-text-muted)] bg-[var(--card-muted)]">
+              {category}
+            </span>
+          )}
+          <span className={`text-xs px-2 py-1 rounded-full border ${isPublic ? 'border-green-500/30 text-green-400 bg-green-500/10' : 'border-[var(--card-border)] text-[var(--app-text-muted)] bg-[var(--card-muted)]'}`}>
+            {isPublic ? 'Public' : 'Private'}
+          </span>
+        </div>
       </div>
 
       <div className="flex items-start justify-between gap-2">
         <h3 className="text-[var(--app-text-strong)] font-semibold text-lg mb-1 group-hover:text-[var(--accent)] transition-colors">
           {title}
         </h3>
-        {flag && (
-          <span className="text-lg leading-none" title={country}>
-            {flag}
-          </span>
+        {flagUrl && (
+          <img
+            src={flagUrl}
+            alt={country}
+            title={country}
+            className="h-5 w-8 rounded-sm border border-[var(--card-border)] object-cover"
+          />
         )}
       </div>
       {description && <p className="text-[var(--app-text-muted)] text-sm mb-4 line-clamp-2">{description}</p>}

@@ -5,20 +5,9 @@ import { ContributionHeatmap } from '../components/ContributionHeatmap';
 import { FeaturedSection } from '../components/FeaturedSection';
 import { ContactSection } from '../components/ContactSection';
 import { apiGet, API_BASE_URL } from '../lib/api';
+import { getCountryFlagUrl } from '../lib/countries';
 import { motion } from 'framer-motion';
 export function Projects() {
-  const COUNTRY_FLAGS = {
-    'Sri Lanka': '🇱🇰',
-    India: '🇮🇳',
-    'United States': '🇺🇸',
-    'United Kingdom': '🇬🇧',
-    Australia: '🇦🇺',
-    Canada: '🇨🇦',
-    Germany: '🇩🇪',
-    Singapore: '🇸🇬',
-    'United Arab Emirates': '🇦🇪',
-    Other: '🏳️'
-  };
   const [projects, setProjects] = useState([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
@@ -128,10 +117,13 @@ export function Projects() {
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
                 <h2 className="text-2xl font-bold text-[var(--app-text-strong)]">{selectedProject.title}</h2>
-                {selectedProject.country && (
-                  <span className="text-2xl" title={selectedProject.country}>
-                    {COUNTRY_FLAGS[selectedProject.country] || ''}
-                  </span>
+                {selectedProject.country && getCountryFlagUrl(selectedProject.country) && (
+                  <img
+                    src={getCountryFlagUrl(selectedProject.country)}
+                    alt={selectedProject.country}
+                    title={selectedProject.country}
+                    className="h-6 w-9 rounded-sm border border-[var(--card-border)] object-cover"
+                  />
                 )}
               </div>
               <span className={`text-xs px-2 py-1 rounded-full border ${selectedProject.isPublic ? 'border-green-500/30 text-green-400 bg-green-500/10' : 'border-[var(--card-border)] text-[var(--app-text-muted)] bg-[var(--card-muted)]'}`}>
