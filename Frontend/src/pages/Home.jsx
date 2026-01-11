@@ -3,14 +3,23 @@ import { Clock, Award, FolderGit2, Code2, ChevronDown, ChevronRight, Layout, Pal
 import { StatCard } from '../components/StatCard';
 import { FeaturedSection } from '../components/FeaturedSection';
 import { ContactSection } from '../components/ContactSection';
-import { motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 export function Home() {
   const [now, setNow] = useState(new Date());
+  const heroImages = useMemo(() => (['/1.jpg', '/2.jpg', '/3.jpg']), []);
+  const [heroIndex, setHeroIndex] = useState(0);
 
   useEffect(() => {
     const timer = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setHeroIndex((prev) => (prev + 1) % heroImages.length);
+    }, 7000);
+    return () => clearInterval(timer);
+  }, [heroImages.length]);
 
   const dateText = now.toLocaleDateString(undefined, {
     weekday: 'short',
@@ -146,7 +155,18 @@ export function Home() {
     <div className="flex flex-col xl:flex-row gap-6">
       <div className="flex-1 min-w-0">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="relative h-[280px] rounded-3xl overflow-hidden mb-8 group">
-          <img src="/image.png" alt="Hero" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+          <AnimatePresence mode="wait">
+            <motion.img
+              key={heroImages[heroIndex]}
+              src={heroImages[heroIndex]}
+              alt="Hero"
+              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+              initial={{ opacity: 0, scale: 1.02 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.98 }}
+              transition={{ duration: 0.8 }}
+            />
+          </AnimatePresence>
           <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent p-8 flex flex-col justify-between">
             <div className="flex items-center gap-2 text-[var(--app-text)] bg-black/30 backdrop-blur-md w-fit px-3 py-1.5 rounded-lg border border-white/10">
               <Clock size={16} />
