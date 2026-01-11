@@ -7,6 +7,7 @@ import { Achievements } from './pages/Achievements';
 import { Projects } from './pages/Projects';
 import { Blogs } from './pages/Blogs';
 import { AdminDashboard } from './pages/AdminDashboard';
+import { GithubProjectDetails } from './pages/GithubProjectDetails';
 function ScrollToTop() {
   const { pathname } = useLocation();
   useEffect(() => {
@@ -33,6 +34,7 @@ export function App() {
               <Route path="/about" element={<About />} />
               <Route path="/achievements" element={<Achievements />} />
               <Route path="/projects" element={<Projects />} />
+              <Route path="/projects/github/:repo" element={<GithubProjectDetails />} />
               <Route path="/blogs" element={<Blogs />} />
               <Route path="/admin" element={<AdminDashboard />} />
             </Routes>

@@ -175,6 +175,7 @@ export function Projects() {
               stars={repo.stargazers_count}
               forks={repo.forks_count}
               updatedAt={repo.updated_at}
+              to={`/projects/github/${repo.name}`}
             />
           ))}
           {!githubLoading && filteredGithubRepos.length === 0 && (

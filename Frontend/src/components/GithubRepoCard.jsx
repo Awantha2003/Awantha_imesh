@@ -1,5 +1,6 @@
 import React from 'react';
-import { Star, GitFork, ExternalLink, Clock, Code2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { ArrowRight, Star, GitFork, ExternalLink, Clock, Code2 } from 'lucide-react';
 
 function formatDate(value) {
   if (!value) {
@@ -16,21 +17,22 @@ function formatDate(value) {
   });
 }
 
-export function GithubRepoCard({ name, description, htmlUrl, language, stars, forks, updatedAt }) {
+export function GithubRepoCard({ name, description, htmlUrl, language, stars, forks, updatedAt, to }) {
+  const Wrapper = to ? Link : 'a';
+  const wrapperProps = to
+    ? { to }
+    : { href: htmlUrl, target: '_blank', rel: 'noreferrer' };
+  const trailingIcon = to ? <ArrowRight size={16} /> : <ExternalLink size={16} />;
   return (
-    <a
-      href={htmlUrl}
-      target="_blank"
-      rel="noreferrer"
-      className="group block"
-      title={name}
-    >
+    <Wrapper className="group block" title={name} {...wrapperProps}>
       <div className="bg-[var(--card-bg)] p-5 rounded-xl border border-[var(--card-border)] hover:border-blue-500/50 hover:shadow-lg hover:shadow-blue-500/10 transition-all">
         <div className="flex items-start justify-between gap-3">
           <h3 className="text-[var(--app-text-strong)] font-semibold text-lg group-hover:text-[var(--accent)] transition-colors">
             {name}
           </h3>
-          <ExternalLink size={16} className="text-[var(--app-text-subtle)] group-hover:text-[var(--accent)]" />
+          <span className="text-[var(--app-text-subtle)] group-hover:text-[var(--accent)]">
+            {trailingIcon}
+          </span>
         </div>
 
         {description && (
@@ -60,6 +62,6 @@ export function GithubRepoCard({ name, description, htmlUrl, language, stars, fo
           )}
         </div>
       </div>
-    </a>
+    </Wrapper>
   );
 }
