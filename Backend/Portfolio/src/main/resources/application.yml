@@ -4,6 +4,18 @@ server:
     max-http-form-post-size: 50MB
     max-swallow-size: 50MB
 
+app:
+  admin:
+    email: ${ADMIN_EMAIL:awanthaimesh65@gmail.com}
+    password: ${ADMIN_PASSWORD:Awantha65@}
+  reminders:
+    timezone: "${REMINDER_TIMEZONE:Asia/Colombo}"
+    carry-forward-cron: "${REMINDER_CARRY_CRON:0 5 0 * * *}"
+    daily-cron: "${REMINDER_DAILY_CRON:0 0 8 * * *}"
+    overdue-cron: "${REMINDER_OVERDUE_CRON:0 15 8 * * *}"
+    monthly-cron: "${REMINDER_MONTHLY_CRON:0 30 8 1 * *}"
+    task-cron: "${REMINDER_TASK_CRON:0 * * * * *}"
+
 spring:
   servlet:
     multipart:
@@ -21,3 +33,15 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
+
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:awanthaimesh65@gmail.com}
+    password: "${MAIL_PASSWORD:hzdi syoq trwo vacm}"
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true

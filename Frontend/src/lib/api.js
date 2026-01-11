@@ -1,7 +1,30 @@
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8090';
+const AUTH_STORAGE_KEY = 'adminAuth';
+
+export function setAuthToken(token) {
+  localStorage.setItem(AUTH_STORAGE_KEY, token);
+}
+
+export function clearAuthToken() {
+  localStorage.removeItem(AUTH_STORAGE_KEY);
+}
+
+export function getAuthToken() {
+  return localStorage.getItem(AUTH_STORAGE_KEY);
+}
+
+function buildHeaders(headers = {}) {
+  const token = getAuthToken();
+  if (token) {
+    return { ...headers, Authorization: `Basic ${token}` };
+  }
+  return headers;
+}
 
 export async function apiGet(path) {
-  const response = await fetch(`${API_BASE_URL}${path}`);
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    headers: buildHeaders()
+  });
   if (!response.ok) {
     throw new Error(`Request failed: ${response.status}`);
   }
@@ -11,7 +34,7 @@ export async function apiGet(path) {
 export async function apiPost(path, body) {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: buildHeaders({ 'Content-Type': 'application/json' }),
     body: JSON.stringify(body)
   });
   if (!response.ok) {
@@ -24,7 +47,7 @@ export async function apiPost(path, body) {
 export async function apiPut(path, body) {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    headers: buildHeaders({ 'Content-Type': 'application/json' }),
     body: JSON.stringify(body)
   });
   if (!response.ok) {
@@ -36,7 +59,8 @@ export async function apiPut(path, body) {
 
 export async function apiDelete(path) {
   const response = await fetch(`${API_BASE_URL}${path}`, {
-    method: 'DELETE'
+    method: 'DELETE',
+    headers: buildHeaders()
   });
   if (!response.ok) {
     const text = await response.text();
@@ -49,6 +73,7 @@ export async function apiUpload(path, file) {
   formData.append('file', file);
   const response = await fetch(`${API_BASE_URL}${path}`, {
     method: 'POST',
+    headers: buildHeaders(),
     body: formData
   });
   if (!response.ok) {
