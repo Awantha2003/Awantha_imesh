@@ -1,10 +1,14 @@
 package com.tech.spcours.portfolio.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 public class ProjectResponse {
     private Long id;
     private String title;
     private String description;
     private String displayDate;
+    @JsonProperty("isPublic")
     private boolean isPublic;
     private String imageUrl;
     private String githubUrl;
@@ -46,6 +50,7 @@ public class ProjectResponse {
         this.displayDate = displayDate;
     }
 
+    @JsonIgnore
     public boolean isPublic() {
         return isPublic;
     }
