@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Clock, Award, FolderGit2, Code2, ChevronDown, ChevronRight, Layout, Palette, Megaphone, User } from 'lucide-react';
 import { StatCard } from '../components/StatCard';
-import { FeaturedSection } from '../components/FeaturedSection';
+import { HomeProjectsSection } from '../components/HomeProjectsSection';
 import { ContactSection } from '../components/ContactSection';
 import { AnimatePresence, motion } from 'framer-motion';
 export function Home() {
@@ -194,7 +194,7 @@ export function Home() {
           </div>
         </div>
 
-        <FeaturedSection />
+        <HomeProjectsSection />
       </div>
 
       <div className="w-full xl:w-[320px] flex flex-col gap-6">

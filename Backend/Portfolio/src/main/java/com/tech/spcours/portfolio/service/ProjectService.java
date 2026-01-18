@@ -3,6 +3,7 @@ package com.tech.spcours.portfolio.service;
 import com.tech.spcours.portfolio.dto.ProjectRequest;
 import com.tech.spcours.portfolio.dto.ProjectResponse;
 import com.tech.spcours.portfolio.model.Project;
+import com.tech.spcours.portfolio.repository.ProjectCommentRepository;
 import com.tech.spcours.portfolio.repository.ProjectRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -14,9 +15,11 @@ import java.util.stream.Collectors;
 @Service
 public class ProjectService {
     private final ProjectRepository projectRepository;
+    private final ProjectCommentRepository commentRepository;
 
-    public ProjectService(ProjectRepository projectRepository) {
+    public ProjectService(ProjectRepository projectRepository, ProjectCommentRepository commentRepository) {
         this.projectRepository = projectRepository;
+        this.commentRepository = commentRepository;
     }
 
     public ProjectResponse createProject(ProjectRequest request) {
@@ -59,6 +62,7 @@ public class ProjectService {
         if (!projectRepository.existsById(id)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Project not found");
         }
+        commentRepository.deleteByProject_Id(id);
         projectRepository.deleteById(id);
     }
 

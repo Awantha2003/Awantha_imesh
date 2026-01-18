@@ -14,7 +14,7 @@ export function Blogs() {
     <div className="flex flex-col lg:flex-row gap-8">
       <div className="flex-1">
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold text-[var(--app-text-strong)] flex items-center gap-3"><BookOpen className="text-pink-500" /> Blogs</h1>
+          <h1 className="text-3xl font-bold text-[var(--app-text-strong)] flex items-center gap-3"><BookOpen className="text-pink-500" /> Packages</h1>
         </div>
 
         <div className="grid md:grid-cols-2 gap-6 mb-12">

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { FolderPlus, CheckCircle2, AlertTriangle, RefreshCcw, Pin, Pencil, Trash2, X, Link2, ListTodo, AlertCircle, CalendarDays, BarChart3, BellRing, LogIn, LogOut } from 'lucide-react';
+import { FolderPlus, CheckCircle2, AlertTriangle, RefreshCcw, Pin, Pencil, Trash2, X, ListTodo, AlertCircle, CalendarDays, BarChart3, BellRing, LogIn, LogOut, MessageSquare } from 'lucide-react';
 import { apiGet, apiPost, apiPut, apiDelete, apiUpload, API_BASE_URL, setAuthToken, clearAuthToken, getAuthToken } from '../lib/api';
 import { ProjectCard } from '../components/ProjectCard';
 
@@ -47,15 +47,6 @@ const initialTaskForm = {
   reminderTime: ''
 };
 
-const initialLinkForm = {
-  platform: '',
-  url: '',
-  label: '',
-  iconKey: '',
-  sortOrder: 0,
-  active: true
-};
-
 export function AdminDashboard() {
   const [authForm, setAuthForm] = useState({ email: '', password: '' });
   const [authStatus, setAuthStatus] = useState({ type: '', message: '' });
@@ -69,18 +60,16 @@ export function AdminDashboard() {
   const [saving, setSaving] = useState(false);
   const [imageFile, setImageFile] = useState(null);
   const [editingId, setEditingId] = useState(null);
-  const [socialLinks, setSocialLinks] = useState([]);
-  const [linkForm, setLinkForm] = useState(initialLinkForm);
-  const [linkStatus, setLinkStatus] = useState({ type: '', message: '' });
-  const [linksLoading, setLinksLoading] = useState(true);
-  const [linkSaving, setLinkSaving] = useState(false);
-  const [linkEditingId, setLinkEditingId] = useState(null);
   const [tasks, setTasks] = useState([]);
   const [tasksLoading, setTasksLoading] = useState(true);
   const [taskForm, setTaskForm] = useState(initialTaskForm);
   const [taskEditingId, setTaskEditingId] = useState(null);
   const [taskSaving, setTaskSaving] = useState(false);
   const [taskStatus, setTaskStatus] = useState({ type: '', message: '' });
+  const [pendingComments, setPendingComments] = useState([]);
+  const [pendingCommentsLoading, setPendingCommentsLoading] = useState(true);
+  const [pendingCommentsStatus, setPendingCommentsStatus] = useState({ type: '', message: '' });
+  const [pendingCommentActionId, setPendingCommentActionId] = useState(null);
 
   const loadProjects = async () => {
     setLoading(true);
@@ -94,18 +83,6 @@ export function AdminDashboard() {
     }
   };
 
-  const loadLinks = async () => {
-    setLinksLoading(true);
-    try {
-      const data = await apiGet('/api/social-links/all');
-      setSocialLinks(Array.isArray(data) ? data : []);
-    } catch (error) {
-      setLinkStatus({ type: 'error', message: 'Failed to load social links.' });
-    } finally {
-      setLinksLoading(false);
-    }
-  };
-
   const loadTasks = async () => {
     setTasksLoading(true);
     try {
@@ -115,6 +92,19 @@ export function AdminDashboard() {
       setTaskStatus({ type: 'error', message: 'Failed to load tasks.' });
     } finally {
       setTasksLoading(false);
+    }
+  };
+
+  const loadPendingComments = async () => {
+    setPendingCommentsLoading(true);
+    setPendingCommentsStatus({ type: '', message: '' });
+    try {
+      const data = await apiGet('/api/admin/project-comments/pending');
+      setPendingComments(Array.isArray(data) ? data : []);
+    } catch (error) {
+      setPendingCommentsStatus({ type: 'error', message: 'Failed to load pending comments.' });
+    } finally {
+      setPendingCommentsLoading(false);
     }
   };
 
@@ -143,8 +133,8 @@ export function AdminDashboard() {
       return;
     }
     loadProjects();
-    loadLinks();
     loadTasks();
+    loadPendingComments();
   }, [isAuthenticated]);
 
   const handleChange = (field) => (event) => {
@@ -193,15 +183,6 @@ export function AdminDashboard() {
   const handleImageChange = (event) => {
     const file = event.target.files?.[0] || null;
     setImageFile(file);
-  };
-
-  const handleLinkChange = (field) => (event) => {
-    const { type, checked, value } = event.target;
-    let nextValue = type === 'checkbox' ? checked : value;
-    if (type === 'number') {
-      nextValue = value === '' ? '' : Number(value);
-    }
-    setLinkForm((prev) => ({ ...prev, [field]: nextValue }));
   };
 
   const handleTaskChange = (field) => (event) => {
@@ -355,59 +336,52 @@ export function AdminDashboard() {
     }
   };
 
-  const handleLinkSubmit = async (event) => {
-    event.preventDefault();
-    setLinkSaving(true);
-    setLinkStatus({ type: '', message: '' });
-    try {
-      const payload = {
-        ...linkForm,
-        sortOrder: linkForm.sortOrder === '' ? 0 : Number(linkForm.sortOrder)
-      };
-      if (linkEditingId) {
-        await apiPut(`/api/social-links/${linkEditingId}`, payload);
-        setLinkStatus({ type: 'success', message: 'Social link updated.' });
-      } else {
-        await apiPost('/api/social-links', payload);
-        setLinkStatus({ type: 'success', message: 'Social link created.' });
-      }
-      setLinkForm(initialLinkForm);
-      setLinkEditingId(null);
-      await loadLinks();
-    } catch (error) {
-      setLinkStatus({ type: 'error', message: linkEditingId ? 'Failed to update link.' : 'Failed to create link.' });
-    } finally {
-      setLinkSaving(false);
-    }
-  };
-
-  const handleLinkEdit = (link) => {
-    setLinkEditingId(link.id);
-    setLinkForm({
-      platform: link.platform || '',
-      url: link.url || '',
-      label: link.label || '',
-      iconKey: link.iconKey || '',
-      sortOrder: link.sortOrder ?? 0,
-      active: Boolean(link.active)
-    });
-  };
-
-  const handleLinkCancel = () => {
-    setLinkEditingId(null);
-    setLinkForm(initialLinkForm);
-  };
-
-  const handleLinkDelete = async (linkId) => {
-    if (!window.confirm('Delete this social link?')) {
+  const handleApproveComment = async (commentId) => {
+    if (!commentId) {
       return;
     }
+    setPendingCommentActionId(commentId);
+    setPendingCommentsStatus({ type: '', message: '' });
     try {
-      await apiDelete(`/api/social-links/${linkId}`);
-      await loadLinks();
+      await apiPut(`/api/admin/project-comments/${commentId}/approve`, {});
+      setPendingComments((prev) => prev.filter((comment) => comment.id !== commentId));
+      setPendingCommentsStatus({ type: 'success', message: 'Comment approved.' });
     } catch (error) {
-      setLinkStatus({ type: 'error', message: 'Failed to delete link.' });
+      setPendingCommentsStatus({ type: 'error', message: 'Failed to approve comment.' });
+    } finally {
+      setPendingCommentActionId(null);
     }
+  };
+
+  const handleRejectComment = async (commentId) => {
+    if (!commentId) {
+      return;
+    }
+    if (!window.confirm('Reject this comment?')) {
+      return;
+    }
+    setPendingCommentActionId(commentId);
+    setPendingCommentsStatus({ type: '', message: '' });
+    try {
+      await apiDelete(`/api/admin/project-comments/${commentId}`);
+      setPendingComments((prev) => prev.filter((comment) => comment.id !== commentId));
+      setPendingCommentsStatus({ type: 'success', message: 'Comment rejected.' });
+    } catch (error) {
+      setPendingCommentsStatus({ type: 'error', message: 'Failed to reject comment.' });
+    } finally {
+      setPendingCommentActionId(null);
+    }
+  };
+
+  const formatCommentDate = (value) => {
+    if (!value) {
+      return '';
+    }
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) {
+      return value;
+    }
+    return parsed.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
   };
 
   const parseDate = (value) => (value ? new Date(`${value}T00:00:00`) : null);
@@ -473,16 +447,6 @@ export function AdminDashboard() {
     return { monthLabel, cells, todayDay: today.getDate() };
   }, []);
 
-  const linkStatusIcon = useMemo(() => {
-    if (linkStatus.type === 'success') {
-      return <CheckCircle2 size={18} className="text-green-400" />;
-    }
-    if (linkStatus.type === 'error') {
-      return <AlertTriangle size={18} className="text-red-400" />;
-    }
-    return null;
-  }, [linkStatus]);
-
   const authStatusIcon = useMemo(() => {
     if (authStatus.type === 'success') {
       return <CheckCircle2 size={18} className="text-green-400" />;
@@ -502,6 +466,16 @@ export function AdminDashboard() {
     }
     return null;
   }, [taskStatus]);
+
+  const pendingCommentsStatusIcon = useMemo(() => {
+    if (pendingCommentsStatus.type === 'success') {
+      return <CheckCircle2 size={18} className="text-green-400" />;
+    }
+    if (pendingCommentsStatus.type === 'error') {
+      return <AlertTriangle size={18} className="text-red-400" />;
+    }
+    return null;
+  }, [pendingCommentsStatus]);
 
   const taskSummary = useMemo(() => {
     const today = new Date();
@@ -1113,6 +1087,85 @@ export function AdminDashboard() {
       </div>
 
       <div className="rounded-3xl border border-[var(--card-border)] bg-[var(--card-bg)] p-6 md:p-8">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h2 className="text-xl font-semibold text-[var(--app-text-strong)] flex items-center gap-2">
+              <MessageSquare size={18} className="text-blue-400" /> Client Feedback
+            </h2>
+            <p className="text-xs text-[var(--app-text-subtle)] mt-1">
+              Approve comments before they appear on project pages.
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-[var(--app-text-subtle)]">
+              {pendingCommentsLoading ? 'Loading...' : `${pendingComments.length} pending`}
+            </span>
+            <button
+              type="button"
+              onClick={loadPendingComments}
+              className="inline-flex items-center gap-2 rounded-full border border-[var(--button-border)] bg-[var(--button-bg)] px-4 py-2 text-sm font-semibold text-[var(--app-text-strong)] hover:bg-[var(--card-hover)]"
+            >
+              <RefreshCcw size={16} />
+              Refresh
+            </button>
+          </div>
+        </div>
+
+        {pendingCommentsStatus.message && (
+          <div className="mt-4 inline-flex items-center gap-2 text-sm text-[var(--app-text-strong)]">
+            {pendingCommentsStatusIcon}
+            <span>{pendingCommentsStatus.message}</span>
+          </div>
+        )}
+
+        <div className="mt-6 space-y-3">
+          {pendingCommentsLoading && (
+            <div className="text-sm text-[var(--app-text-muted)]">Loading pending comments...</div>
+          )}
+          {!pendingCommentsLoading && pendingComments.length === 0 && (
+            <div className="text-sm text-[var(--app-text-muted)]">No pending comments right now.</div>
+          )}
+          {!pendingCommentsLoading && pendingComments.map((comment) => (
+            <div key={comment.id} className="rounded-2xl border border-[var(--card-border)] bg-[var(--card-muted)] p-4 space-y-3">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <div className="text-sm font-semibold text-[var(--app-text-strong)]">{comment.name}</div>
+                  <div className="text-xs text-[var(--app-text-subtle)]">
+                    {comment.projectTitle || `Project #${comment.projectId}`}
+                  </div>
+                  {comment.email && (
+                    <div className="text-xs text-[var(--app-text-subtle)]">{comment.email}</div>
+                  )}
+                </div>
+                <div className="text-xs text-[var(--app-text-subtle)]">{formatCommentDate(comment.createdAt)}</div>
+              </div>
+              <p className="text-sm text-[var(--app-text-muted)] whitespace-pre-line">{comment.message}</p>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleApproveComment(comment.id)}
+                  disabled={pendingCommentActionId === comment.id}
+                  className="inline-flex items-center gap-2 rounded-full border border-green-500/40 bg-green-500/20 px-3 py-1.5 text-xs text-green-100 hover:bg-green-500/30 disabled:opacity-60"
+                >
+                  <CheckCircle2 size={14} />
+                  {pendingCommentActionId === comment.id ? 'Approving...' : 'Approve'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleRejectComment(comment.id)}
+                  disabled={pendingCommentActionId === comment.id}
+                  className="inline-flex items-center gap-2 rounded-full border border-red-500/30 bg-red-500/10 px-3 py-1.5 text-xs text-red-200 hover:bg-red-500/20 disabled:opacity-60"
+                >
+                  <Trash2 size={14} />
+                  {pendingCommentActionId === comment.id ? 'Removing...' : 'Reject'}
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="rounded-3xl border border-[var(--card-border)] bg-[var(--card-bg)] p-6 md:p-8">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold text-[var(--app-text-strong)]">All Projects</h2>
           <span className="text-xs text-[var(--app-text-subtle)]">
@@ -1165,162 +1218,6 @@ export function AdminDashboard() {
               No projects yet. Create your first project above.
             </div>
           )}
-        </div>
-      </div>
-
-      <div className="rounded-3xl border border-[var(--card-border)] bg-[var(--card-bg)] p-6 md:p-8">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h2 className="text-xl font-semibold text-[var(--app-text-strong)] flex items-center gap-2">
-              <Link2 size={18} className="text-blue-400" /> Contact & Social Links
-            </h2>
-            <p className="text-xs text-[var(--app-text-subtle)] mt-1">
-              Add or update social links once, and they update everywhere.
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={loadLinks}
-            className="inline-flex items-center gap-2 rounded-full border border-[var(--button-border)] bg-[var(--button-bg)] px-4 py-2 text-sm font-semibold text-[var(--app-text-strong)] hover:bg-[var(--card-hover)]"
-          >
-            <RefreshCcw size={16} />
-            Refresh
-          </button>
-        </div>
-
-        <form onSubmit={handleLinkSubmit} className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
-          <div>
-            <label className="text-xs uppercase tracking-wide text-[var(--app-text-subtle)]">Platform</label>
-            <input
-              value={linkForm.platform}
-              onChange={handleLinkChange('platform')}
-              required
-              className="mt-2 w-full rounded-xl border border-[var(--card-border)] bg-[var(--card-muted)] px-4 py-2 text-sm text-[var(--app-text-strong)] focus:outline-none focus:border-blue-500"
-              placeholder="LinkedIn"
-            />
-          </div>
-
-          <div>
-            <label className="text-xs uppercase tracking-wide text-[var(--app-text-subtle)]">URL</label>
-            <input
-              value={linkForm.url}
-              onChange={handleLinkChange('url')}
-              required
-              className="mt-2 w-full rounded-xl border border-[var(--card-border)] bg-[var(--card-muted)] px-4 py-2 text-sm text-[var(--app-text-strong)] focus:outline-none focus:border-blue-500"
-              placeholder="https://..."
-            />
-          </div>
-
-          <div>
-            <label className="text-xs uppercase tracking-wide text-[var(--app-text-subtle)]">Label</label>
-            <input
-              value={linkForm.label}
-              onChange={handleLinkChange('label')}
-              className="mt-2 w-full rounded-xl border border-[var(--card-border)] bg-[var(--card-muted)] px-4 py-2 text-sm text-[var(--app-text-strong)] focus:outline-none focus:border-blue-500"
-              placeholder="LinkedIn"
-            />
-          </div>
-
-          <div>
-            <label className="text-xs uppercase tracking-wide text-[var(--app-text-subtle)]">Icon Key</label>
-            <input
-              value={linkForm.iconKey}
-              onChange={handleLinkChange('iconKey')}
-              className="mt-2 w-full rounded-xl border border-[var(--card-border)] bg-[var(--card-muted)] px-4 py-2 text-sm text-[var(--app-text-strong)] focus:outline-none focus:border-blue-500"
-              placeholder="linkedin"
-            />
-            <p className="mt-2 text-xs text-[var(--app-text-subtle)]">
-              Use: github, linkedin, email, facebook, messenger, whatsapp, website.
-            </p>
-          </div>
-
-          <div>
-            <label className="text-xs uppercase tracking-wide text-[var(--app-text-subtle)]">Sort Order</label>
-            <input
-              type="number"
-              value={linkForm.sortOrder}
-              onChange={handleLinkChange('sortOrder')}
-              className="mt-2 w-full rounded-xl border border-[var(--card-border)] bg-[var(--card-muted)] px-4 py-2 text-sm text-[var(--app-text-strong)] focus:outline-none focus:border-blue-500"
-              placeholder="0"
-            />
-          </div>
-
-          <div className="flex items-center gap-3 md:pt-6">
-            <input
-              id="linkActive"
-              type="checkbox"
-              checked={linkForm.active}
-              onChange={handleLinkChange('active')}
-              className="h-4 w-4 rounded border border-[var(--card-border)]"
-            />
-            <label htmlFor="linkActive" className="text-sm text-[var(--app-text-strong)]">
-              Active
-            </label>
-          </div>
-
-          <div className="md:col-span-2 flex flex-wrap items-center gap-3">
-            <button
-              type="submit"
-              disabled={linkSaving}
-              className="inline-flex items-center gap-2 rounded-full border border-[var(--button-border)] bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-500 disabled:opacity-60"
-            >
-              {linkSaving ? 'Saving...' : linkEditingId ? 'Update Link' : 'Add Link'}
-            </button>
-            {linkEditingId && (
-              <button
-                type="button"
-                onClick={handleLinkCancel}
-                className="inline-flex items-center gap-2 rounded-full border border-[var(--button-border)] bg-[var(--button-bg)] px-4 py-2 text-sm font-semibold text-[var(--app-text-strong)] hover:bg-[var(--card-hover)]"
-              >
-                <X size={16} />
-                Cancel
-              </button>
-            )}
-            {linkStatus.message && (
-              <div className="inline-flex items-center gap-2 text-sm text-[var(--app-text-strong)]">
-                {linkStatusIcon}
-                <span>{linkStatus.message}</span>
-              </div>
-            )}
-          </div>
-        </form>
-
-        <div className="mt-6 space-y-3">
-          {linksLoading && (
-            <div className="text-sm text-[var(--app-text-muted)]">Loading social links...</div>
-          )}
-          {!linksLoading && socialLinks.length === 0 && (
-            <div className="text-sm text-[var(--app-text-muted)]">No social links yet.</div>
-          )}
-          {!linksLoading && socialLinks.map((link) => (
-            <div key={link.id} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[var(--card-border)] bg-[var(--card-muted)] px-4 py-3">
-              <div>
-                <div className="text-sm text-[var(--app-text-strong)]">{link.platform}</div>
-                <div className="text-xs text-[var(--app-text-subtle)]">{link.url}</div>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className={`text-xs px-2 py-1 rounded-full border ${link.active ? 'border-green-500/30 text-green-400 bg-green-500/10' : 'border-[var(--card-border)] text-[var(--app-text-muted)] bg-[var(--card-bg)]'}`}>
-                  {link.active ? 'Active' : 'Hidden'}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => handleLinkEdit(link)}
-                  className="inline-flex items-center gap-2 rounded-full border border-[var(--button-border)] bg-[var(--button-bg)] px-3 py-1.5 text-xs text-[var(--app-text-strong)] hover:bg-[var(--card-hover)]"
-                >
-                  <Pencil size={14} />
-                  Edit
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleLinkDelete(link.id)}
-                  className="inline-flex items-center gap-2 rounded-full border border-red-500/30 bg-red-500/10 px-3 py-1.5 text-xs text-red-200 hover:bg-red-500/20"
-                >
-                  <Trash2 size={14} />
-                  Delete
-                </button>
-              </div>
-            </div>
-          ))}
         </div>
       </div>
     </div>

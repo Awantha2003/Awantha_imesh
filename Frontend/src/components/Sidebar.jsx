@@ -7,7 +7,7 @@ const links = [
   { to: '/about', label: 'About', icon: User },
   { to: '/achievements', label: 'Achievements', icon: Trophy },
   { to: '/projects', label: 'Projects', icon: Folder },
-  { to: '/blogs', label: 'Blogs', icon: BookOpen },
+  { to: '/blogs', label: 'Packages', icon: BookOpen },
   { to: '/admin', label: 'Admin', icon: Shield }
 ];
 

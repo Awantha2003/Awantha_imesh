@@ -26,6 +26,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/projects/public").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/projects/*/comments").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/projects/*/comments").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/social-links").permitAll()
                         .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
                         .requestMatchers("/api/auth/**").authenticated()

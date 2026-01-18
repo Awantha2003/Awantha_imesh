@@ -1,14 +1,15 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Folder, Search } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { ProjectCard } from '../components/ProjectCard';
 import { GithubRepoCard } from '../components/GithubRepoCard';
 import { ContributionHeatmap } from '../components/ContributionHeatmap';
 import { FeaturedSection } from '../components/FeaturedSection';
 import { ContactSection } from '../components/ContactSection';
-import { apiGet, API_BASE_URL } from '../lib/api';
-import { getCountryFlagUrl } from '../lib/countries';
+import { apiGet } from '../lib/api';
 export function Projects() {
   const githubUsername = import.meta.env.VITE_GITHUB_USERNAME || 'Awantha2003';
+  const navigate = useNavigate();
   const [projects, setProjects] = useState([]);
   const [githubRepos, setGithubRepos] = useState([]);
   const [search, setSearch] = useState('');
@@ -17,7 +18,6 @@ export function Projects() {
   const [githubLoading, setGithubLoading] = useState(false);
   const [githubError, setGithubError] = useState('');
   const [view, setView] = useState('portfolio');
-  const [selectedProject, setSelectedProject] = useState(null);
 
   useEffect(() => {
     const loadProjects = async () => {
@@ -70,11 +70,6 @@ export function Projects() {
     };
   }, [view, githubUsername, githubRepos.length]);
 
-  useEffect(() => {
-    if (view !== 'portfolio') {
-      setSelectedProject(null);
-    }
-  }, [view]);
 
   const filteredProjects = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -95,6 +90,7 @@ export function Projects() {
       return name.includes(term) || desc.includes(term);
     });
   }, [githubRepos, search]);
+
   return (
     <div className="max-w-6xl mx-auto">
       <ContributionHeatmap />
@@ -148,7 +144,7 @@ export function Projects() {
               imageUrl={project.imageUrl}
               category={project.category}
               country={project.country}
-              onClick={() => setSelectedProject(project)}
+              onClick={() => navigate(`/projects/${project.id}`, { state: { project } })}
               delay={i * 0.05}
             />
           ))}
@@ -193,84 +189,6 @@ export function Projects() {
 
       <FeaturedSection />
       <ContactSection />
-
-      {selectedProject && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-          <div className="relative w-full max-w-3xl rounded-3xl border border-[var(--card-border)] bg-[var(--card-bg)] p-6 md:p-8">
-            <button
-              type="button"
-              onClick={() => setSelectedProject(null)}
-              className="absolute right-4 top-4 rounded-full border border-[var(--button-border)] bg-[var(--button-bg)] px-3 py-1 text-xs text-[var(--app-text-strong)]"
-            >
-              Close
-            </button>
-
-            {selectedProject.imageUrl && (
-              <div className="mb-6 overflow-hidden rounded-2xl border border-[var(--card-border)]">
-                <img
-                  src={selectedProject.imageUrl.startsWith('/uploads') ? `${API_BASE_URL}${selectedProject.imageUrl}` : selectedProject.imageUrl}
-                  alt={selectedProject.title}
-                  className="h-56 w-full object-cover"
-                />
-              </div>
-            )}
-
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <h2 className="text-2xl font-bold text-[var(--app-text-strong)]">{selectedProject.title}</h2>
-                {selectedProject.country && getCountryFlagUrl(selectedProject.country) && (
-                  <img
-                    src={getCountryFlagUrl(selectedProject.country)}
-                    alt={selectedProject.country}
-                    title={selectedProject.country}
-                    className="h-6 w-9 rounded-sm border border-[var(--card-border)] object-cover"
-                  />
-                )}
-              </div>
-              <span className={`text-xs px-2 py-1 rounded-full border ${selectedProject.isPublic ? 'border-green-500/30 text-green-400 bg-green-500/10' : 'border-[var(--card-border)] text-[var(--app-text-muted)] bg-[var(--card-muted)]'}`}>
-                {selectedProject.isPublic ? 'Public' : 'Private'}
-              </span>
-            </div>
-
-            <p className="mt-2 text-sm text-[var(--app-text-muted)]">{selectedProject.displayDate}</p>
-
-            {selectedProject.description && (
-              <p className="mt-4 text-sm text-[var(--app-text)] leading-relaxed">{selectedProject.description}</p>
-            )}
-
-            <div className="mt-4 space-y-2 text-xs text-[var(--app-text-subtle)]">
-              {selectedProject.category && <div>Category: {selectedProject.category}</div>}
-              {selectedProject.category === 'Client Project' && selectedProject.country && (
-                <div>Country: {selectedProject.country}</div>
-              )}
-              {selectedProject.techStack && <div>Tech Stack: {selectedProject.techStack}</div>}
-            </div>
-
-            <div className="mt-6 flex flex-wrap gap-3">
-              {selectedProject.liveUrl && (
-                <a
-                  href={selectedProject.liveUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-2 rounded-full border border-[var(--button-border)] bg-[var(--button-bg)] px-4 py-2 text-sm text-[var(--app-text-strong)] hover:bg-[var(--card-hover)]"
-                >
-                  Live Demo
-                </a>
-              )}
-              {selectedProject.githubUrl && (
-                <a
-                  href={selectedProject.githubUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-2 rounded-full border border-[var(--button-border)] bg-[var(--button-bg)] px-4 py-2 text-sm text-[var(--app-text-strong)] hover:bg-[var(--card-hover)]"
-                >
-                  GitHub
-                </a>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
